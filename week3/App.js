@@ -1,123 +1,108 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Button, Image } from 'react-native';
+import React, { Component } from 'react';
+import { StyleSheet, View, Text } from 'react-native';
+import ChoiceButton from './components/ChoiceButton';
+import { Header } from './components/Header';
+import { Choice, CHOICES, compare } from './components/Choice';
+import { History, updateResult } from './components/History';
 
-export default function App() {
-  const [gamePrompt, setGamePrompt] = useState('Fire dafdasfs');
-  const onPress = (userChoice) => {
-    alert(userChoice);
-  };
-  const CHOICES = [
-    {
-      name: 'rock',
-      uri: 'http://pngimg.com/uploads/stone/stone_PNG13622.png'
-    },
-    {
-      name: 'paper',
-      uri: 'https://www.stickpng.com/assets/images/5887c26cbc2fc2ef3a186046.png'
-    },
-    {
-      name: 'scissors',
-      uri: 'http://pluspng.com/img-png/png-hairdressing-scissors-beauty-salon-scissors-clipart-4704.png',
-    }
-  ];
+export default class App extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      name: "",
+      uri: require('./assets/letsplay.jpg'),
+      nameCom: "",
+      uriCom: require('./assets/letsplay.jpg'),
+      result: "Let's play!",
+      colorResult: "black",
+      totalGame: 0,
+      gameWin: 0,
+      gameDraw: 0,
+      gameLose: 0,
+    };
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.layoutHeader}>
-        <Text style={styles.buttonText}>{gamePrompt}</Text>
-      </View>
-      <View style={[styles.choiceContainer, { backgroundColor: 'yellow' }]}>
-        <View style={[styles.choiceContainer2, { backgroundColor: 'red' }]}>
-          <Text style={styles.choiceDescription}>
-            Player
-          </Text>
-          <Image
-            source={{ uri: CHOICES[0].uri }}
-            resizeMode="contain"
-            style={styles.choiceImage}
+    this.onPressButton = this.onPressButton.bind(this);
+  }
+
+  onPressButton(_choice) {
+    let playerChoice = CHOICES.find(x => x.name === _choice)
+    let name = playerChoice.name;
+    let uri = playerChoice.uri;
+    let _compare = compare(playerChoice.name);
+    let [result, computerChoice, colorResult] = _compare;
+    let nameCom = computerChoice.name;
+    let uriCom = computerChoice.uri;
+    let totalGame = this.state.totalGame + 1;
+    let [gameWin, gameDraw, gameLose] = updateResult(result, this.state);
+    this.setState({
+      name, uri, nameCom, uriCom, result, colorResult, totalGame, gameWin, gameDraw, gameLose
+    });
+  }
+
+  render() {
+    return (
+      <View style={styles.container}>
+        <View style={styles.layoutHeader}>
+          <Header
+            result={this.state.result}
+            colorResult={this.state.colorResult}
           />
-          <Text style={styles.choiceCardTitle}>
-            Rock
-          </Text>
         </View>
-        <Text style={styles.choiceImage}>vs</Text>
-        <View style={[styles.choiceContainer2, { backgroundColor: 'blue' }]}>
-          <Text style={styles.choiceDescription}>
-            Computer
-          </Text>
-          <Image
-            source={{ uri: CHOICES[1].uri }}
-            resizeMode="contain"
-            style={styles.choiceImage}
-          />
-          <Text style={styles.choiceCardTitle}>
-            Scissors
-        </Text>
+        <View style={styles.playArea}>
+          <View style={styles.choicesContainer}>
+            <Choice user="Player" name={this.state.name} uri={this.state.uri} />
+            <Text >vs</Text>
+            <Choice user="Com" name={this.state.nameCom} uri={this.state.uriCom} />
+          </View>
+        </View>
+        <View style={styles.history}>
+          {
+            <History
+              totalGame={this.state.totalGame}
+              gameWin={this.state.gameWin}
+              gameDraw={this.state.gameDraw}
+              gameLose={this.state.gameLose}
+            />
+          }
+        </View>
+        <View style={styles.choices}>
+          {
+            CHOICES.map(choice => {
+              return <ChoiceButton key={choice.name} name={choice.name} onPress={this.onPressButton} />;
+            })
+          }
         </View>
       </View>
-      <View style={styles.layoutButton}>
-        {
-          CHOICES.map(choice => {
-            return (
-              <TouchableOpacity
-                key={choice.name}
-                style={styles.buttonStyle}
-                onPress={() => onPress(choice.name)}
-              >
-                <Text style={styles.buttonText}>
-                  {choice.name}
-                </Text>
-              </TouchableOpacity>
-            )
-          })
-        }
-      </View>
-    </View>
-  );
+    );
+  }
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#e9ebee',
+    backgroundColor: '#fff',
+    justifyContent: 'center'
   },
-  container2: {
-    flex: 0.5,
-    alignItems: 'center',
+  layoutHeader: {
+    flex: 0.15,
+  },
+  playArea: {
+    flex: 0.4,
+  },
+  history: {
+    flex: 0.15,
+  },
+  choices: {
+    flex: 0.3,
     justifyContent: 'center',
-    backgroundColor: '#e9ebee',
+    alignItems: 'center',
   },
   buttonContainer: {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  buttonStyle: {
-    width: 200,
-    margin: 10,
-    height: 50,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#640D14',
-  },
-  buttonText: {
-    fontSize: 25,
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  layoutHeader: {
-    backgroundColor: 'green',
-    flex: 0.2,
-    justifyContent: 'center',
-    fontWeight: 'bold',
-  },
-  layoutButton: {
-    backgroundColor: 'blue',
-    flex: 0.3,
-  },
   choicesContainer: {
+    flex: 0.5,
     margin: 10,
     borderWidth: 2,
     paddingTop: 100,
@@ -130,26 +115,31 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     justifyContent: 'space-around',
     shadowColor: 'rgba(0,0,0,0.2)',
-    shadowOffset: { height: 5, width: 5 },
+    shadowOffset: {
+      height: 5,
+      width: 5,
+    },
   },
   choiceContainer: {
-    flex: 0.5,
+    flex: 1,
     alignItems: 'center',
-    flexDirection: 'row',
   },
   choiceDescription: {
     fontSize: 25,
     color: '#250902',
     fontWeight: 'bold',
-    textDecorationLine: 'underline',
-  },
+    textDecorationLine: 'underline'
+  }
+  ,
   choiceCardTitle: {
     fontSize: 30,
-    color: '#250902',
-  },
+    color: '#250902'
+  }
+  ,
   choiceImage: {
     width: 150,
     height: 150,
     padding: 10,
   }
 });
+
